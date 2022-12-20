@@ -7,6 +7,7 @@ import android.content.Context;
 import android.media.AudioAttributes;
 import android.os.Build;
 import android.provider.Settings;
+import android.net.Uri;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -52,6 +53,7 @@ public class FlutterNotificationChannelPlugin implements FlutterPlugin, MethodCa
           boolean enableVibration = (boolean)call.argument("enableVibration");
           boolean enableSound = (boolean)call.argument("enableSound");
           boolean showBadge = (boolean)call.argument("showBadge");
+          String sound = (String)call.argument("sound");
           Log.i(TAG, "Channel Settings: \n" +
             "id: " + id + "\n" +
             "name: " + name + "\n" +
@@ -61,7 +63,8 @@ public class FlutterNotificationChannelPlugin implements FlutterPlugin, MethodCa
             "allowBubbles: " + allowBubbles + "\n" +
             "showBadge: " + showBadge + "\n" +
             "enableVibration: " + enableVibration + "\n" +
-            "enableSound: " + enableSound
+            "enableSound: " + enableSound + "\n" +
+            "sound: " + sound 
           );
 
 
@@ -79,7 +82,13 @@ public class FlutterNotificationChannelPlugin implements FlutterPlugin, MethodCa
                     .setUsage(AudioAttributes.USAGE_NOTIFICATION)
                     .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
                     .build();
-            notificationChannel.setSound(Settings.System.DEFAULT_NOTIFICATION_URI, attributes);
+            if (sound != null) {
+              int soundFileId = context.getResources().getIdentifier(sound, "raw", context.getPackageName());
+              Uri soundUri = Uri.parse("android.resource://" + context.getPackageName() + '/' + soundFileId);
+              notificationChannel.setSound(soundUri, attributes);
+            } else {
+              notificationChannel.setSound(Settings.System.DEFAULT_NOTIFICATION_URI, attributes);
+            }
           }
           NotificationManager notificationManager =
                   (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
